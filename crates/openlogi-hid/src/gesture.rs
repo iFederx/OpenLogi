@@ -233,10 +233,17 @@ async fn arm_controls(
 
         // Only divert the gesture button when it owns the gesture role; otherwise
         // leave it native (a non-owner HID++ control must not be captured-and-dropped).
+        //
+        // Some devices (e.g. M720 Triathlon) advertise CID 0xC3 as divertable but do
+        // not set the RAW_XY flag in getCidInfo, even though the firmware does send
+        // rawXYEvent notifications once diverted with raw_xy=true. We therefore attempt
+        // diversion on any divertable 0xC3 and fall back silently when the device
+        // rejects the raw-XY flag (the firmware will ack with raw_xy echoed as false,
+        // which means direction swipes won't work but clicks still will).
         if divert_gesture_button
             && controls
                 .iter()
-                .any(|c| c.cid == reprog_controls::GESTURE_BUTTON_CID && c.supports_raw_xy())
+                .any(|c| c.cid == reprog_controls::GESTURE_BUTTON_CID && c.is_divertable())
         {
             rc.set_cid_reporting(reprog_controls::GESTURE_BUTTON_CID, true, true)
                 .await

@@ -35,12 +35,20 @@ pub use hidpp_reprog::{
 pub const FEATURE_ID: u16 = 0x1b04;
 
 /// Control ID of the MX-line dedicated gesture button (`Mouse_Gesture_Button`,
-/// Logitech "App_Switch_Gesture").
+/// Logitech "App_Switch_Gesture"). Used by MX Master-line devices and the M720
+/// Triathlon.
 ///
 /// MX Master 4 also has a separate Haptic Sense Panel in the thumb area. That
 /// panel is not this CID; it must be discovered from the device's `0x1b04`
 /// control table and supported explicitly before OpenLogi treats it as a
 /// bindable/capturable input.
+///
+/// **M720 quirk:** the M720's firmware reports this CID as divertable but omits
+/// the `RAW_XY` flag in `getCidInfo`. The device does in practice emit
+/// `rawXYEvent` notifications once diverted with `raw_xy = true`, so we rely on
+/// `is_divertable()` rather than `supports_raw_xy()` to gate diversion — the
+/// firmware silently ignores the raw-XY bit when unsupported, and the ack echo
+/// reveals whether it took effect.
 pub const GESTURE_BUTTON_CID: u16 = 0x00c3;
 
 /// Control IDs of the "DPI / ModeShift" button family. Whichever a device
